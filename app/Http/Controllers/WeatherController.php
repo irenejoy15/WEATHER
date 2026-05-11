@@ -14,11 +14,11 @@ class WeatherController extends Controller
         $apiKey = env('API_KEY');
         $apiUrl = env('API_URL') . "?q={$city}&appid={$apiKey}";
         $response = Http::get($apiUrl)->collect();
+        if (!$response->has('main') || !$response->has('weather')) {
+            return response()->json(['error' => 'City not found or API error'], 404);
+        }
         $response->put('flag', 0);
         $response_data = (object)$response->all();
-        if (!$response->successful()) {
-            return response()->json(['error' => 'Failed to fetch weather data'], 500);
-        }
         return new WeatherResource($response_data);
     }
 
@@ -28,11 +28,11 @@ class WeatherController extends Controller
         $apiKey = env('API_KEY');
         $apiUrl = env('API_URL') . "?q={$city}&appid={$apiKey}";
         $response = Http::get($apiUrl)->collect();
+        if (!$response->has('main') || !$response->has('weather')) {
+            return response()->json(['error' => 'City not found or API error'], 404);
+        }
         $response->put('flag', 1);
         $response_data = (object)$response->all();
-        if (!$response->successful()) {
-            return response()->json(['error' => 'Failed to fetch weather data'], 500);
-        }
         return Cache::remember("weather_{$city}", now()->addMinutes(10), function () use ($response_data) {
             return new WeatherResource($response_data);
         });
